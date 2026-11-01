@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Соня — мои работы</title>
+    <style>
+        /* ============================================================
+           СБРОС И БАЗОВЫЕ ПЕРЕМЕННЫЕ
+           ============================================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep: #07070e;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-primary: #f4f4f8;
+            --text-secondary: #9ca3af;
+            --accent: #8b5cf6;
+            --accent-2: #ec4899;
+            --accent-3: #22d3ee;
+            --radius: 24px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 64px 24px 40px;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ============================================================
+           ЖИВОЙ ФОН: сетка + светящиеся сферы + зерно
+           ============================================================ */
+        .bg-scene {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* Тонкая перспективная сетка */
+        .bg-grid {
+            position: absolute;
+            inset: -50%;
+            background-image:
+                linear-gradient(rgba(139, 92, 246, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, 0.07) 1px, transparent 1px);
+            background-size: 60px 60px;
+            transform: perspective(600px) rotateX(55deg) translateY(-10%);
+            mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 75%);
+        }
+
+        /* Светящиеся сферы */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            will-change: transform;
+        }
+
+        .orb-1 {
+            width: 55vmax;
+            height: 55vmax;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.55) 0%, transparent 70%);
+            top: -22vmax;
+            left: -18vmax;
+            animation: drift1 26s ease-in-out infinite;
+        }
+
+        .orb-2 {
+            width: 50vmax;
+            height: 50vmax;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.45) 0%, transparent 70%);
+            bottom: -22vmax;
+            right: -16vmax;
+            animation: drift2 30s ease-in-out infinite;
+        }
+
+        .orb-3 {
+            width: 40vmax;
+            height: 40vmax;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.35) 0%, transparent 70%);
+            top: 38%;
+            left: 48%;
+            animation: drift3 34s ease-in-out infinite;
+        }
+
+        @keyframes drift1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            40%      { transform: translate(10vmax, 8vmax) scale(1.18); }
+            75%      { transform: translate(-5vmax, 12vmax) scale(0.92); }
+        }
+
+        @keyframes drift2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            35%      { transform: translate(-12vmax, -8vmax) scale(1.22); }
+            70%      { transform: translate(5vmax, -14vmax) scale(0.9); }
+        }
+
+        @keyframes drift3 {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50%      { transform: translate(-38%, -64%) scale(1.28); }
+        }
+
+        /* Плёночное зерно поверх всего */
+        .bg-grain {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.5;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+        }
+
+        /* ============================================================
+           ЗАГОЛОВОК
+           ============================================================ */
+        header {
+            text-align: center;
+            margin-bottom: 72px;
+            max-width: 720px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .greeting {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--accent-3);
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            padding: 8px 18px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(8px);
+        }
+
+        .greeting .pulse {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-3);
+            box-shadow: 0 0 10px var(--accent-3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.4; transform: scale(0.75); }
+        }
+
+        header h1 {
+            font-size: clamp(2.6rem, 7vw, 4.6rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.02;
+            margin-bottom: 24px;
+        }
+
+        /* Градиентный текст с переливом */
+        .gradient-text {
+            background: linear-gradient(
+                100deg,
+                #a78bfa 0%,
+                #f0abfc 22%,
+                #67e8f9 44%,
+                #f0abfc 66%,
+                #a78bfa 88%,
+                #c4b5fd 100%
+            );
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            animation: shimmer 8s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 0% center; }
+            100% { background-position: -250% center; }
+        }
+
+        /* Мягкое свечение за заголовком */
+        header h1::selection {
+            background: var(--accent);
+            -webkit-text-fill-color: #fff;
+        }
+
+        header p {
+            font-size: clamp(1rem, 2.2vw, 1.2rem);
+            color: var(--text-secondary);
+            font-weight: 400;
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        header p strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ============================================================
+           СЕТКА
+           ============================================================ */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================================
+           КАРТОЧКА — СТЕКЛО + ПОДСВЕТКА ПРИ НАВЕДЕНИИ
+           ============================================================ */
+        .app-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 32px 28px;
+            border-radius: var(--radius);
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            overflow: hidden;
+            isolation: isolate;
+            transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                        border-color 0.45s ease,
+                        box-shadow 0.45s ease;
+            opacity: 0;
+            animation: cardReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Мягкое свечение, следущее за курсором (задаётся через CSS-переменные) */
+        .app-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(
+                420px circle at var(--mx, 50%) var(--my, 50%),
+                rgba(139, 92, 246, 0.16),
+                transparent 65%
+            );
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .app-card:hover::before {
+            opacity: 1;
+        }
+
+        .app-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(167, 139, 250, 0.35);
+            box-shadow:
+                0 0 0 1px rgba(167, 139, 250, 0.1),
+                0 24px 60px -20px rgba(139, 92, 246, 0.35),
+                0 8px 24px -8px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Верхняя градиентная полоска */
+        .app-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.45s ease, left 0.45s ease, right 0.45s ease;
+        }
+
+        .app-card:hover::after {
+            opacity: 1;
+            left: 5%;
+            right: 5%;
+        }
+
+        @keyframes cardReveal {
+            from {
+                opacity: 0;
+                transform: translateY(32px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Задержки появления */
+        .app-card:nth-child(1) { animation-delay: 0.05s; }
+        .app-card:nth-child(2) { animation-delay: 0.15s; }
+        .app-card:nth-child(3) { animation-delay: 0.25s; }
+        .app-card:nth-child(4) { animation-delay: 0.35s; }
+        .app-card:nth-child(5) { animation-delay: 0.45s; }
+        .app-card:nth-child(6) { animation-delay: 0.55s; }
+
+        /* ============================================================
+           ИКОНКА
+           ============================================================ */
+        .app-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 22px;
+            flex-shrink: 0;
+            position: relative;
+            transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        box-shadow 0.45s ease;
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+        }
+
+        .app-card:hover .app-icon {
+            transform: scale(1.1) rotate(-4deg);
+        }
+
+        /* Индивидуальные фоны иконок */
+        .app-icon.messenger {
+            background: linear-gradient(135deg, #6ee7b7, #22d3ee);
+            box-shadow: 0 8px 28px -6px rgba(34, 211, 238, 0.45);
+        }
+
+        .app-icon.compressor {
+            background: linear-gradient(135deg, #93c5fd, #6366f1);
+            box-shadow: 0 8px 28px -6px rgba(99, 102, 241, 0.45);
+        }
+
+        .app-icon.pomodoro {
+            background: linear-gradient(135deg, #fcd34d, #f97316);
+            box-shadow: 0 8px 28px -6px rgba(249, 115, 22, 0.45);
+        }
+
+        .app-icon.calorie {
+            background: linear-gradient(135deg, #fda4af, #ec4899);
+            box-shadow: 0 8px 28px -6px rgba(236, 72, 153, 0.45);
+        }
+
+        .app-icon.hrt {
+            background: linear-gradient(135deg, #f0abfc, #a855f7);
+            box-shadow: 0 8px 28px -6px rgba(168, 85, 247, 0.45);
+        }
+
+        .app-icon.voice {
+            background: linear-gradient(135deg, #5eead4, #14b8a6);
+            box-shadow: 0 8px 28px -6px rgba(20, 184, 166, 0.45);
+        }
+
+        /* ============================================================
+           ТЕГ
+           ============================================================ */
+        .app-tag {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 5px 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            align-self: flex-start;
+            border: 1px solid transparent;
+        }
+
+        .app-tag.violet {
+            color: #c4b5fd;
+            background: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.25);
+        }
+
+        .app-tag.blue {
+            color: #93c5fd;
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+
+        .app-tag.green {
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.25);
+        }
+
+        .app-tag.pink {
+            color: #f0abfc;
+            background: rgba(236, 72, 153, 0.1);
+            border-color: rgba(236, 72, 153, 0.25);
+        }
+
+        .app-tag.rose {
+            color: #fda4af;
+            background: rgba(225, 29, 72, 0.1);
+            border-color: rgba(225, 29, 72, 0.25);
+        }
+
+        .app-tag.teal {
+            color: #5eead4;
+            background: rgba(13, 148, 136, 0.1);
+            border-color: rgba(13, 148, 136, 0.25);
+        }
+
+        /* ============================================================
+           ТЕКСТ КАРТОЧКИ
+           ============================================================ */
+        .app-card h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .app-card .description {
+            font-size: 0.925rem;
+            color: var(--text-secondary);
+            flex-grow: 1;
+            margin-bottom: 26px;
+            line-height: 1.6;
+        }
+
+        /* ============================================================
+           КНОПКА
+           ============================================================ */
+        .app-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 26px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            align-self: flex-start;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Заливка градиентом при наведении */
+        .app-link::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            z-index: -1;
+        }
+
+        .app-link:hover {
+            border-color: transparent;
+            color: #fff;
+            gap: 14px;
+            box-shadow: 0 8px 30px -6px rgba(139, 92, 246, 0.5);
+        }
+
+        .app-link:hover::before {
+            opacity: 1;
+        }
+
+        .app-link .arrow {
+            font-size: 1.05rem;
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .app-link:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* ============================================================
+           ПОДВАЛ
+           ============================================================ */
+        footer {
+            margin-top: 80px;
+            padding-top: 32px;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            z-index: 1;
+        }
+
+        footer .credit {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        footer .heart {
+            color: #ec4899;
+            animation: heartbeat 1.6s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            15%      { transform: scale(1.25); }
+            30%      { transform: scale(1); }
+            45%      { transform: scale(1.18); }
+        }
+
+        footer a {
+            color: #c4b5fd;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.25s ease, gap 0.25s ease;
+        }
+
+        footer a:hover {
+            color: #fff;
+            gap: 9px;
+        }
+
+        /* ============================================================
+           АДАПТИВНОСТЬ
+           ============================================================ */
+        @media (max-width: 640px) {
+            body {
+                padding: 40px 16px 32px;
+            }
+
+            header {
+                margin-bottom: 48px;
+            }
+
+            header h1 {
+                font-size: clamp(2.2rem, 10vw, 3rem);
+            }
+
+            .app-grid {
+                gap: 16px;
+            }
+
+            .app-card {
+                padding: 24px 22px;
+            }
+
+            .app-icon {
+                width: 58px;
+                height: 58px;
+                font-size: 27px;
+                border-radius: 15px;
+            }
+
+            .app-card h2 {
+                font-size: 1.2rem;
+            }
+
+            .app-card .description {
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+            }
+
+            .app-link {
+                width: 100%;
+                justify-content: center;
+                padding: 13px 20px;
+            }
+
+            footer {
+                flex-direction: column;
+                text-align: center;
+                margin-top: 56px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            body {
+                padding: 28px 12px;
+            }
+
+            .app-card {
+                padding: 20px 18px;
+            }
+        }
+
+        /* ============================================================
+           УВАЖЕНИЕ К prefers-reduced-motion
+           ============================================================ */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001s !important;
+            }
+
+            .app-card {
+                opacity: 1;
+            }
+
+            .orb,
+            .bg-grid {
+                animation: none;
+            }
+
+            .gradient-text {
+                -webkit-text-fill-color: #c4b5fd;
+                color: #c4b5fd;
+                background: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЖИВОЙ ФОН -->
+    <div class="bg-scene" aria-hidden="true">
+        <div class="bg-grid"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+    <div class="bg-grain" aria-hidden="true"></div>
+
+    <!-- ЗАГОЛОВОК -->
+    <header>
+        <span class="greeting">
+            <span class="pulse"></span>
+            Привет, я Соня
+        </span>
+        <h1>
+            Мои <span class="gradient-text">работы</span>
+        </h1>
+        <p>Простые инструменты, которые упрощают жизнь и делают её <strong>продуктивнее</strong></p>
+    </header>
+
+    <!-- СЕТКА КАРТОЧЕК -->
+    <main class="app-grid">
+
+        <!-- Lumen -->
+        <article class="app-card">
+            <div class="app-icon messenger">💬</div>
+            <span class="app-tag green">Общение</span>
+            <h2>Lumen</h2>
+            <p class="description">
+                Лёгкий мессенджер для быстрого и удобного общения.
+                Пишите сообщения и оставайтесь на связи прямо в браузере.
+            </p>
+            <a href="https://theboyslikeitru-glitch.github.io/messenger/"
+               class="app-link"
+               target="_blank"
+               rel="noopener noreferrer">
+                Открыть
+                <span class="arrow">→</span>
+            </a>
+        </article>
+
+        <!-- Squishy -->
+        <article class="app-card">
+            <div class="app-icon compressor">🗜️</div>
+            <span class="app-tag blue">Инструменты</span>
+            <h2>Squishy</h2>
+            <p class="description">
+                Сжатие любых файлов, фото и видео прямо в браузере.
+                Быстро, удобно и без установки лишних программ.
+            </p>
+            <a href="https://theboyslikeitru-glitch.github.io/squishy/"
+               class="app-link"
+               target="_blank"
+               rel="noopener noreferrer">
+                Открыть
+                <span class="arrow">→</span>
+            </a>
+        </article>
+
+        <!-- Pip Focus Companion -->
+        <article class="app-card">
+            <div class="app-icon pomodoro">🍅</div>
+            <span class="app-tag violet">Продуктивность</span>
+            <h2>Pip Focus Companion</h2>
+            <p class="description">
+                Сервис помодоро для фокуса и отдыха. Настройте таймер, работайте
+                сфокусированно и делайте перерывы вовремя.
+            </p>
+            <a href="https://theboyslikeitru-glitch.github.io/Pip-Focus-Companion/"
+               class="app-link"
+               target="_blank"
+               rel="noopener noreferrer">
+                Открыть
+                <span class="arrow">→</span>
+            </a>
+        </article>
+
+        <!-- Munchy -->
+        <article class="app-card">
+            <div class="app-icon calorie">🍽️</div>
+            <span class="app-tag rose">Здоровье</span>
+            <h2>Munchy — Calorie Tracker</h2>
+            <p class="description">
+                Личный дневник питания и тренировок: считает калории и БЖУ
+                под цель, ведёт программу A/B/C на ягодицы и бёдра, показывает
+                динамику веса и прогресс за 14 дней. Всё хранится в браузере.
+            </p>
+            <a href="https://theboyslikeitru-glitch.github.io/Calorie-Tracker/"
+               class="app-link"
+               target="_blank"
+               rel="noopener noreferrer">
+                Открыть
+                <span class="arrow">→</span>
+            </a>
+        </article>
+
+        <!-- My Way -->
+        <article class="app-card">
+            <div class="app-icon hrt">💊</div>
+            <span class="app-tag pink">Личное</span>
+            <h2>My Way</h2>
+            <p class="description">
+                Дневник пути на ЗГТ: счётчик дня терапии, фазы феминизации
+                с обратным отсчётом, целевые замеры и заметки о самочувствии.
+                Без серверов, аккаунтов и рекламы — данные остаются у вас.
+            </p>
+            <a href="https://theboyslikeitru-glitch.github.io/myway/"
+               class="app-link"
+               target="_blank"
+               rel="noopener noreferrer">
+                Открыть
+                <span class="arrow">→</span>
+            </a>
+        </article>
+
+        <!-- Отклик -->
+        <article class="app-card">
+            <div class="app-icon voice">🎤</div>
+            <span class="app-tag teal">Голос</span>
+            <h2>Отклик</h2>
+            <p class="description">
+                Тренажёр голоса для транс-персон: упражнения на резонанс,
+                высоту и тембр, дневник прогресса и безопасные техники.
+                Помогает бережно приблизить голос к желаемому.
+            </p>
+            <a href="https://theboyslikeitru-glitch.github.io/otklik/"
+               class="app-link"
+               target="_blank"
+               rel="noopener noreferrer">
+                Открыть
+                <span class="arrow">→</span>
+            </a>
+        </article>
+
+    </main>
+
+    <!-- ПОДВАЛ -->
+    <footer>
+        <div class="credit">
+            Сделано с <span class="heart">❤️</span> Соней
+        </div>
+        <a href="https://github.com/theboyslikeitru-glitch"
+           target="_blank"
+           rel="noopener noreferrer">
+            GitHub
+            <span aria-hidden="true">↗</span>
+        </a>
+    </footer>
+
+    <!-- Микро-скрипт: подсветка следует за курсором -->
+    <script>
+        (function () {
+            // Отключаем эффект, если пользователь предпочитает меньше движения
+            var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduceMotion) return;
+
+            // Только для устройств с мышью
+            if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+            var cards = document.querySelectorAll('.app-card');
+
+            cards.forEach(function (card) {
+                card.addEventListener('pointermove', function (e) {
+                    var rect = card.getBoundingClientRect();
+                    var x = ((e.clientX - rect.left) / rect.width) * 100;
+                    var y = ((e.clientY - rect.top) / rect.height) * 100;
+                    card.style.setProperty('--mx', x + '%');
+                    card.style.setProperty('--my', y + '%');
+                });
+
+                card.addEventListener('pointerleave', function () {
+                    card.style.removeProperty('--mx');
+                    card.style.removeProperty('--my');
+                });
+            });
+        })();
+    </script>
+
+</body>
+</html>
